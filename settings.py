@@ -2,32 +2,20 @@
 """
 
 import logging
-import yaml
 from os import environ, makedirs
-from os.path import join, dirname, abspath
+from os.path import join, dirname, abspath, exists
+import yaml
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 DOWNLOAD_PATH = join(environ['HOME'], 'vid')
-CFG_PATH = join(dirname(abspath(__file__)), 'cfg')
+CFG_PATH = join(environ['XDG_CONFIG_HOME'], 'ydb')
 ARCHIVE = join(CFG_PATH, "archive.id")
 
-VIDEOLIST = "video_list.yaml"
-STREAMLIST = "stream_list.yaml"
+STREAM_DUMP = environ.get('STREAM_DUMP', join(DOWNLOAD_PATH, 'stream_dump'))
 
-try:
-    makedirs(CFG_PATH)
-except FileExistsError:
-    pass
-
-try:
-    STREAM_DUMP = environ['STREAM_DUMP']
-except KeyError:
-    STREAM_DUMP = join(DOWNLOAD_PATH, 'stream_dump')
-    logger.info("STREAM_DUMP variable not found.\n Using default:{}".format(STREAM_DUMP))
-
-VLIST_BLANK = """
+VIDEO_BLANK = """
 #COMMAND_PLACEHOLDER:
   #extra: [--match-title, <words_to_match>]
   #length: <max-download-length>
@@ -35,26 +23,35 @@ VLIST_BLANK = """
   #url: <url-to-user> or <url-to-playlist>
 """
 
-SLIST_BLANK = """
+STREAM_BLANK = """
 #<NAME>:
   #<URL>
 """
 
+MAPPINGS = {
+    'video': {
+        'name': "video_list.yaml",
+        'blank': VIDEO_BLANK,
+        },
+    'stream': {
+        'name': "stream_list.yaml",
+        'blank': STREAM_BLANK,
+        },
+    }
 
-def open_with_default(fname, blank):
-    fpath = join(CFG_PATH, fname)
+def get_list(choice):
     try:
-        with open(fpath, 'r') as handler:
+        dic = MAPPINGS[choice]
+        path = join(CFG_PATH, dic['name'])
+
+        with open(path, 'r') as handler:
             loaded = yaml.safe_load(handler)
         return loaded
     except FileNotFoundError:
-        with open(fpath, 'x') as handler:
-            handler.write(blank)
-        logger.info("`{}` created. Please add urls to start.".format(VIDEOLIST))
-    except Exception as err:
-        logger.warning("We got a problem with the list {}: {}\n"
-                       "List should be in {}".format(fname, err, str(CFG_PATH)))
-
-
-VL = open_with_default(VIDEOLIST, VLIST_BLANK)
-SL = open_with_default(STREAMLIST, SLIST_BLANK)
+        if not exists(CFG_PATH):
+            makedirs(CFG_PATH)
+        with open(path, 'x') as handler:
+            handler.write(dic['blank'])
+        logger.info(f"`{dic['name']}` created. Please add urls to start.")
+    except KeyError as e:
+        logger.error(f"Unknown choice:\n{e}\nPlease choose from {MAPPINGS.keys()}")

@@ -19,10 +19,13 @@ import subprocess
 from os.path import join
 from collections import OrderedDict as OD
 
-from settings import VL, DOWNLOAD_PATH, ARCHIVE
+from settings import DOWNLOAD_PATH, ARCHIVE, get_list
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger("ydb_main")
+
+
+VL = get_list('video')
 
 
 def match_channels(ident, **kwargs):

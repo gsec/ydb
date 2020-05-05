@@ -6,7 +6,7 @@ import subprocess
 import argparse
 from multiprocessing.dummy import Pool  # dummy makes it threads
 
-from settings import STREAM_DUMP, SL, STREAMLIST
+from settings import STREAM_DUMP, get_list
 
 logger = logging.getLogger('ydb_stream')
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +15,7 @@ SEP = '_'
 RETRY_TIME = 100
 PAD_SIZE = 2
 F_EXT = '.mp4'
+SL = get_list('stream')
 
 
 def process(args):
@@ -82,8 +83,7 @@ def main():
             stream_dict = {k: SL[k] for k in args.elements}
         except KeyError as e:
             sys.exit("Requested Stream <{}> not found.\n"
-                     "You can show available entries with the `--list` argument\n"
-                     "or add new ones manually to <{}>".format(e, STREAMLIST))
+                     "You can show available entries with the `--list` argument\n")
     else:
         stream_dict = SL
     logger.info(" Capturing: {}\n".format(list(stream_dict.keys())))
