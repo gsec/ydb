@@ -8,14 +8,14 @@ from multiprocessing.dummy import Pool  # dummy makes it threads
 
 from settings import STREAM_DUMP, get_list
 
-logger = logging.getLogger('ydb_stream')
+logger = logging.getLogger("ydb_stream")
 logging.basicConfig(level=logging.INFO)
 
-SEP = '_'
+SEP = "_"
 RETRY_TIME = 100
 PAD_SIZE = 2
-F_EXT = '.mp4'
-SL = get_list('stream')
+F_EXT = ".mp4"
+SL = get_list("stream")
 
 
 def process(args):
@@ -35,9 +35,9 @@ def name_rotator(ident):
     matches = [f for f in flist if f.startswith(ident)]
     try:
         last_file = sorted(matches)[-1]
-        file_head = last_file.rsplit('.')[0]
+        file_head = last_file.rsplit(".")[0]
         lf_size = os.stat(os.path.join(STREAM_DUMP, last_file)).st_size
-        num = int(file_head[len(ident + SEP):])
+        num = int(file_head[len(ident + SEP) :])
 
         if lf_size:
             num += 1
@@ -66,10 +66,13 @@ def stream_all(streamlist):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='yds')
-    parser.add_argument('elements', nargs=argparse.REMAINDER,
-                        help="List of streams captured simultaneously.")
-    parser.add_argument('-l', '--list', action='store_true')
+    parser = argparse.ArgumentParser(prog="yds")
+    parser.add_argument(
+        "elements",
+        nargs=argparse.REMAINDER,
+        help="List of streams captured simultaneously.",
+    )
+    parser.add_argument("-l", "--list", action="store_true")
     args = parser.parse_args()
 
     if args.list:
@@ -82,13 +85,15 @@ def main():
         try:
             stream_dict = {k: SL[k] for k in args.elements}
         except KeyError as e:
-            sys.exit("Requested Stream <{}> not found.\n"
-                     "You can show available entries with the `--list` argument\n")
+            sys.exit(
+                "Requested Stream <{}> not found.\n"
+                "You can show available entries with the `--list` argument\n"
+            )
     else:
         stream_dict = SL
     logger.info(" Capturing: {}\n".format(list(stream_dict.keys())))
     stream_all(stream_dict)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
